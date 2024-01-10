@@ -1818,8 +1818,9 @@ static void tcc_output_binary(TCCState *s1, FILE *f, const int *section_order)
                 = 0; /* the next offset in the text section where we will look for a jump target */
             for (j = 0; j < size; j++) {
                 for (k = 0; k < labels; k++) {
-                    if (label[k].pos == j)
-                        fprintf(f, "%s%s:\n", STATIC_PREFIX /* "__local_" */, label[k].name);
+                    if (label[k].pos == j) {
+                        fprintf(f, "%s%d_%s:\n", STATIC_PREFIX /* "__local_" */, k, label[k].name);
+                    }
                 }
                 /* insert jump labels */
                 if (next_jump_pos == j) {
