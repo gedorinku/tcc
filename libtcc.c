@@ -1493,6 +1493,12 @@ TCCState *tcc_new(void)
     tcc_define_symbol(s, "__WCHAR_TYPE__", "int");
 #endif
 #ifdef TCC_TARGET_816
+    tcc_define_symbol(s, "__SIZEOF_INT__", "2");
+    tcc_define_symbol(s, "__SIZEOF_LONG_LONG__", "4");
+    tcc_define_symbol(s, "__CHAR_BIT__", "8");
+    tcc_define_symbol(s, "__ORDER_LITTLE_ENDIAN__", "1234");
+    tcc_define_symbol(s, "__ORDER_BIG_ENDIAN__", "4321");
+    tcc_define_symbol(s, "__BYTE_ORDER__", "__ORDER_LITTLE_ENDIAN__");
     tcc_define_symbol(s, "__INT_MAX__", "32767");
     tcc_define_symbol(s, "__LONG_MAX__", "32767");
     tcc_define_symbol(s, "__LONG_LONG_MAX__", "2147483647LL");
