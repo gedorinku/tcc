@@ -158,9 +158,9 @@ char *get_sym_str(Sym *sym)
     if (sym->type.t & VT_STATIC) {
         if ((sym->type.t & VT_STATICLOCAL) && current_fn[0] != 0
             && !((sym->type.t & VT_BTYPE) == VT_FUNC))
-            sprintf(name, "%s_FUNC_%s_", STATIC_PREFIX, current_fn);
+            sprintf(name, "%s%s_FUNC_%s_", STATIC_PREFIX, unique_token, current_fn);
         else
-            strcpy(name, STATIC_PREFIX);
+            sprintf(name, "%s%s_", STATIC_PREFIX, unique_token);
     }
 
     /* add symbol name */
