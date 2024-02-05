@@ -1177,7 +1177,7 @@ void gen_opi(int op)
     int length, align;
     int isconst = 0;
     int timesshift, i;
-    int skipcall;
+    int skipcall, useshort;
 
     length = type_size(&vtop[0].type, &align);
     r = vtop[-1].r;
@@ -1214,6 +1214,7 @@ void gen_opi(int op)
     // multiplication
     case '*':
         skipcall = 0;
+        useshort = 0;
         if (isconst) {
             // optimize for 8 bits computations
             switch (fc) {
@@ -1230,6 +1231,9 @@ void gen_opi(int op)
                 pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nsec\nsbc.b tcc__r%d\n", r, r);
                 break;
             default:
+                if (fc < 128) {
+                    useshort = 1;
+                }
                 pr("; mul #%d, tcc__r%d\n", fc, r);
                 pr("lda.w #%d\nsta.b tcc__r9\n", fc);
                 break;
@@ -1240,7 +1244,11 @@ void gen_opi(int op)
         }
         if (!skipcall) { // when no optim done, do the call
             pr("lda.b tcc__r%d\nsta.b tcc__r10\n", r);
-            pr("jsr.l tcc__mul\n");
+            if (useshort) {
+                pr("jsr.l tcc__muls\n");
+            } else {
+                pr("jsr.l tcc__mul\n");
+            }
         }
         pr("sta.b tcc__r%d\n", r);
         break;
