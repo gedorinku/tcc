@@ -100,6 +100,7 @@ static int output_type;
 static int reloc_output;
 static const char *outfile;
 static int do_bench = 0;
+int sa1 = 0;
 
 #define TCC_OPTION_HAS_ARG 0x0001
 #define TCC_OPTION_NOSEP 0x0002 /* cannot have space before option and arg */
@@ -151,6 +152,7 @@ enum {
     TCC_OPTION_pipe,
     TCC_OPTION_E,
     TCC_OPTION_x,
+    TCC_OPTION_sa1,
 };
 
 /**
@@ -192,6 +194,7 @@ static const TCCOption tcc_options[] = {
     {"pipe", TCC_OPTION_pipe, 0},            /**< Use pipes for intermediate output */
     {"E", TCC_OPTION_E, 0},                  /**< Preprocess only */
     {"x", TCC_OPTION_x, TCC_OPTION_HAS_ARG}, /**< Specify input language */
+    {"sa1", TCC_OPTION_sa1, 0},
     {NULL},                                  /**< Null-terminated option */
 };
 
@@ -529,6 +532,9 @@ int parse_args(TCCState *s, int argc, char **argv)
                 output_type = TCC_OUTPUT_PREPROCESS;
                 break;
             case TCC_OPTION_x:
+                break;
+            case TCC_OPTION_sa1:
+                sa1 = 1;
                 break;
             default:
                 if (s->warn_unsupported) {

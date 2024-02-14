@@ -30,6 +30,8 @@
 #define REL_SECTION_FMT ".rel%s"
 #endif
 
+extern int sa1;
+
 /* XXX: DLL with PLT would only work with x86-64 for now */
 //#define TCC_OUTPUT_DLL_WITH_PLT
 
@@ -1842,7 +1844,11 @@ static void tcc_output_binary(TCCState *s1, FILE *f, const int *section_order)
             /* uninitialized data, we only need a .ramsection */
             ElfW(Sym) * esym;
             int empty = 1;
-            fprintf(f, ".RAMSECTION \".bss\" BANK $7e SLOT 2\n");
+            if (sa1) {
+                fprintf(f, ".RAMSECTION \".sa1bss\" BANK $40 SLOT 3\n");
+            } else {
+                fprintf(f, ".RAMSECTION \".bss\" BANK $7e SLOT 2\n");
+            }
             for (j = 0, esym = (ElfW(Sym) *) symtab_section->data;
                  j < symtab_section->sh_size / sizeof(ElfW(Sym));
                  esym++, j++) {
@@ -1878,17 +1884,21 @@ static void tcc_output_binary(TCCState *s1, FILE *f, const int *section_order)
             /* k == 0: output .ramsection; k == 1: output .section */
             for (k = startk; k < endk; k++) {
                 if (k == 0) { /* .ramsection */
+                    const char *section = sa1 ? "sa1globram.data" : "globram.data";
                     fprintf(f,
-                            ".RAMSECTION \"ram%s%s\" APPENDTO \"globram.data\"\n",
+                            ".RAMSECTION \"ram%s%s\" APPENDTO \"%s\"\n",
                             unique_token,
-                            s->name);
+                            s->name,
+                            section);
                 } else { /* (ROM) .section */
+                    const char *section = sa1 ? "sa1glob.data" : "glob.data";
                     // check for .data section to append to global one
                     if (!strcmp(s->name, ".data"))
                         fprintf(f,
-                                ".SECTION \"%s%s\" APPENDTO \"glob.data\"\n",
+                                ".SECTION \"%s%s\" APPENDTO \"%s\"\n",
                                 unique_token,
-                                s->name);
+                                s->name,
+                                section);
                     else
                         fprintf(f, ".SECTION \"%s\" SUPERFREE\n", s->name); // 09042021
                 }
