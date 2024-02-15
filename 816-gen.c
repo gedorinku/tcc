@@ -1217,9 +1217,17 @@ void gen_opi(int op)
         if (isconst) {
             // optimize for 8 bits computations
             switch (fc) {
+            case 2:
+                skipcall = 1;
+                pr("lda.b tcc__r%d\nasl a\n", r);
+                break;
             case 3:
                 skipcall = 1;
                 pr("lda.b tcc__r%d\nasl a\nclc\nadc.b tcc__r%d\n", r, r);
+                break;
+            case 4:
+                skipcall = 1;
+                pr("lda.b tcc__r%d\nasl a\nasl a\n", r);
                 break;
             case 5:
                 skipcall = 1;
@@ -1228,6 +1236,10 @@ void gen_opi(int op)
             case 7:
                 skipcall = 1;
                 pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\nsec\nsbc.b tcc__r%d\n", r, r);
+                break;
+            case 8:
+                skipcall = 1;
+                pr("lda.b tcc__r%d\nasl a\nasl a\nasl a\n", r);
                 break;
             default:
                 pr("; mul #%d, tcc__r%d\n", fc, r);
@@ -1273,22 +1285,27 @@ void gen_opi(int op)
         else
             div = 0;
 
-        if (isconst) {
+        if (isconst && div && fc == 2) {
             pr("; div #%d, tcc__r%d\n", fc, r);
-            pr("ldx.b tcc__r%d\n", r);
-            pr("lda.w #%d\n", fc);
+            pr("lsr.b tcc__r%d\n", r);
         } else {
-            pr("; div tcc__r%d,tcc__r%d\n", fr, r);
+            if (isconst) {
+                pr("; div #%d, tcc__r%d\n", fc, r);
+                pr("ldx.b tcc__r%d\n", r);
+                pr("lda.w #%d\n", fc);
+            } else {
+                pr("; div tcc__r%d,tcc__r%d\n", fr, r);
 
-            pr("ldx.b tcc__r%d\n", r);  // dividend to x
-            pr("lda.b tcc__r%d\n", fr); // divisor to accu
+                pr("ldx.b tcc__r%d\n", r);  // dividend to x
+                pr("lda.b tcc__r%d\n", fr); // divisor to accu
+            }
+            pr("jsr.l tcc__%s\n", sign ? "div" : "udiv");
+
+            if (div)
+                pr("lda.b tcc__r9\nsta.b tcc__r%d\n", r); // quotient in r9...
+            else
+                pr("stx.b tcc__r%d\n", r); // ...remainder in x
         }
-        pr("jsr.l tcc__%s\n", sign ? "div" : "udiv");
-
-        if (div)
-            pr("lda.b tcc__r9\nsta.b tcc__r%d\n", r); // quotient in r9...
-        else
-            pr("stx.b tcc__r%d\n", r); // ...remainder in x
 
         break;
 
